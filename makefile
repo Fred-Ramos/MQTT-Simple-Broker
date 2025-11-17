@@ -1,3 +1,9 @@
+CC = gcc
+CFLAGS = -Wall
+
+SRC_DIR = src
+OBJ = main.o broker.o
+
 # Targets
 all: mqtt_broker
 
@@ -6,10 +12,10 @@ clean:
 	rm -f *.o mqtt_broker
 
 # Pattern rule for compiling .c files into .o files
-%.o: %.c
-	gcc -c -Wall -fpic $<
+%.o: $(SRC_DIR)/%.c
+	$(CC) $(CFLAGS) -c $< -o $@
 
 # Final executable target
-mqtt_broker: main.o broker.o
-	gcc -o mqtt_broker main.o broker.o
+mqtt_broker: $(OBJ)
+	$(CC) -o mqtt_broker $(OBJ)
 

@@ -1,41 +1,74 @@
-# SDIS_PROJECT
-Implementation of MQTT
+# MQTT Broker (QoS 1) — Simple C Implementation
 
-Authors: Cesar Junior and Frederico Ramos
+This project implements a **custom MQTT Broker** supporting **QoS 1 (at least once delivery)**, following the MQTT v3.1.1 specification.  
+The design is intentionally lightweight and focused on connection management, subscriptions, message forwarding, and retransmission.
 
-The objective of this work is to develop a simMQTT Broker, applying the concepts studied in the Distributed Systems course. Following the theoretical approach, a practical implementation will be carried out, allowing for the exploration of the broker's operation in the pub/sub model and message management. 
+Most of the limitations come from the configuration constants in **broker.h**.
 
+## Features
 
+- Full handling of core MQTT Control Packets:
+  - **CONNECT / CONNACK**
+  - **PUBLISH / PUBACK**
+  - **SUBSCRIBE / SUBACK**
+  - **PINGREQ / PINGRESP**
+  - **DISCONNECT**
+- **QoS 1 reliability**
+  - Message stored in per-client queues  
+  - Retransmitted until PUBACK is received
+- **Session persistence**
+  - Reconnecting with the same Client ID restores the previous session state
+- **Multi-threaded server**
+  - One thread per client  
+  - One global queue-handling thread  
+- TCP server running on port **1883**
 
-The intended specifications for this work are:
+## Configuration (Static)
 
-•	TCP/IP communication between the Broker and MQTT Clients.
+At the moment, configuration is done through constants in `broker.h`:
 
-•	Quality of Service (QoS) 1 as a minimum.
+```
+#define BROKER_PORT 1883
+#define MAX_CLIENTS 10
+#define MAX_TOPICS 5
+#define MAX_PUB_QUEUE_SIZE 10
+#define TIME_TO_RETRANSMIT 5.0
+#define BUFFER_SIZE 1024
+```
 
-•	Dynamic management of Clients and their respective topics (Pub/Sub).
+## Build Instructions
 
-•	Code written in C and C++.
+Only **gcc** and **make** are required.
 
+Build using:
 
+```
+make
+```
 
-The planned final implementation will be:
-Broker → PC (Linux)
-MQTT Clients → 2 PCs + 2 microcontrollers (Esp32 and Esp8266)
+Then run the generated executable:
 
-![image](https://github.com/user-attachments/assets/f0c42e92-a630-4fd0-a1b5-60be23d0af91)
+```
+./mqtt_broker
+```
 
+The broker immediately opens a TCP server on port **1883** and waits for client connections.
 
-Figure 1- Diagram of the desired MQTT broker at the end of the project with example topics
+## Test Benches
 
+Python tests included (`/test`) evaluate:
 
+- **Ring Test** — end-to-end propagation delay  
+- **Spread Test** — fan-out to N subscribers and queue performance  
 
-################################################################
+## Limitations
 
-QoS1 Working
+- No authentication  
+- No retained messages  
+- No wildcard topic support  
+- Single-thread-per-client model  
+- Only supports QoS 1  
 
-# MQTT Broker
+## Reference
 
-This project implements s MQTT Broker from scratch, with Quality of Service (QoS) 1. MQTT's oficial documentation was used https://docs.oasis-open.org/mqtt/mqtt/v3.1.1/os/mqtt-v3.1.1-os.html#_Toc398718037.
-
-most of the limitations to our simplified MQTT broker are from the limits imposed on the header file broker.h
+MQTT v3.1.1 specification: https://docs.oasis-open.org/mqtt/mqtt/v3.1.1/os/mqtt-v3.1.1-os.html
